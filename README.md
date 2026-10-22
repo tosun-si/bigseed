@@ -1,0 +1,71 @@
+# BigSeed
+
+Coherent BigQuery test datasets and Given / When / Then scenarios, generated from the business rules of your code,
+seeded into an environment and run with [BigTesty](https://github.com/tosun-si/bigtesty).
+
+> Pre-alpha: the format of the packs and the CLI will change.
+
+You give BigSeed the files holding the rules (SQL, Python, Java, Markdown specs) and the tables they use. An agent
+extracts the rules, plans the scenarios of each one, and writes a **pack**:
+
+```text
+pack.yaml                        the rules, the scenarios covering them, the data files, the environments
+bigtesty.yaml                    the datasets and tables, for BigTesty
+data/<dataset>/<table>.json      the generated rows
+tests/**/*.bigtesty.yaml         the Given / When / Then scenarios, reading the data files
+inputs/                          the files the pack was generated from
+```
+
+The same data files seed an environment (UAT...) and run the tests on ephemeral datasets with BigTesty: the
+environment and the tests have the same data, and the environment can be reset to a pack version at any time.
+
+## Commands
+
+```bash
+pip install "bigseed[agent]"
+
+# Generate a pack: the agent reads the inputs and the schemas of the tables (no row is read)
+bigseed generate inputs/rules.md inputs/build_daily_failures.sql \
+  -t my-project.monitoring.job_failure -t my-project.monitoring.daily_failures -o packs/daily-failures
+
+# Check it: manifest, data files, BigTesty files, rules covered by scenarios, inputs changed since the generation
+bigseed check -p packs/daily-failures
+
+# Run its scenarios on ephemeral datasets
+bigtesty test --config packs/daily-failures/bigtesty.yaml
+
+# Seed an environment declared in pack.yaml with the rows of the pack
+bigseed seed uat -p packs/daily-failures --dry-run
+bigseed seed uat -p packs/daily-failures
+```
+
+`bigseed check` shows the coverage of the rules, what a reviewer checks before approving a pack:
+
+```text
+covered    R1  A feature with at least 2 failed jobs on a day has one row for that day, with its number of failures
+             monitoring/daily_failures.bigtesty.yaml::r1_one_row_per_day_and_feature_with_enough_failures
+covered    R2  A feature with fewer than 2 failed jobs on a day is not reported for that day
+             monitoring/daily_failures.bigtesty.yaml::r2_one_failure_is_not_reported
+covered    R3  A failed job without feature name is ignored
+             monitoring/daily_failures.bigtesty.yaml::r3_failure_without_feature_is_ignored
+```
+
+See [`examples/01-daily-failures`](examples/01-daily-failures) for a complete pack.
+
+## Principles
+
+- **A human approves every pack.** The agent proposes, it never publishes: an approved pack is a new version.
+- **The expected results come from the rules, not from the SQL under test.** Otherwise the tests copy the bugs of
+  the SQL. Each scenario is linked to a rule, so the reviewer checks the intent, not only the rows.
+- **The environments are an allowlist.** Only the environments declared in the pack can be seeded, `seedable: false`
+  protects the others (prod). Only the input tables are seeded: the output tables are written by the code.
+- **No production data.** The agent reads the schemas of the tables, never their rows.
+- **Self-hosted.** BigSeed runs in your project, with your model (Gemini on Vertex AI by default, with ADK).
+
+## Development
+
+```bash
+uv sync --all-extras
+uv run pytest
+uv run ruff check . && uv run mypy src
+```

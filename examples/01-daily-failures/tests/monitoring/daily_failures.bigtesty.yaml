@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/tosun-si/bigtesty/main/schemas/bigtesty-test.schema.json
+
+description: Daily failures per feature, from the rules of inputs/rules.md
+
+scenarios:
+  - name: r1_one_row_per_day_and_feature_with_enough_failures
+    description: "R1: featurePSG fails 3 times on 2026-01-10 and 2 times on 2026-01-11"
+    given:
+      - table: monitoring.job_failure
+        rows_file: ../../data/monitoring/job_failure.json
+    when:
+      sql_file: ../../inputs/build_daily_failures.sql
+    then:
+      - table: monitoring.daily_failures
+        key_columns: [day, featureName]
+        expected:
+          - { day: "2026-01-10", featureName: featurePSG, failuresCount: 3 }
+          - { day: "2026-01-11", featureName: featurePSG, failuresCount: 2 }
+
+  - name: r2_one_failure_is_not_reported
+    description: "R2: featureOM fails once on 2026-01-10"
+    given:
+      - table: monitoring.job_failure
+        rows_file: ../../data/monitoring/job_failure.json
+    when:
+      sql_file: ../../inputs/build_daily_failures.sql
+    then:
+      - query: SELECT * FROM monitoring.daily_failures WHERE featureName = 'featureOM'
+        row_count: 0
+
+  - name: r3_failure_without_feature_is_ignored
+    description: "R3: 2 failed jobs without feature name on 2026-01-10"
+    given:
+      - table: monitoring.job_failure
+        rows_file: ../../data/monitoring/job_failure.json
+    when:
+      sql_file: ../../inputs/build_daily_failures.sql
+    then:
+      - query: SELECT * FROM monitoring.daily_failures WHERE featureName IS NULL
+        row_count: 0

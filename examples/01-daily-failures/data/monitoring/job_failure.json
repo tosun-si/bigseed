@@ -1,0 +1,10 @@
+[
+  {"featureName": "featurePSG", "jobName": "job1", "dwhCreationDate": "2026-01-10 08:00:00"},
+  {"featureName": "featurePSG", "jobName": "job2", "dwhCreationDate": "2026-01-10 09:00:00"},
+  {"featureName": "featurePSG", "jobName": "job3", "dwhCreationDate": "2026-01-10 10:00:00"},
+  {"featureName": "featurePSG", "jobName": "job4", "dwhCreationDate": "2026-01-11 08:00:00"},
+  {"featureName": "featurePSG", "jobName": "job5", "dwhCreationDate": "2026-01-11 09:00:00"},
+  {"featureName": "featureOM", "jobName": "job6", "dwhCreationDate": "2026-01-10 11:00:00"},
+  {"featureName": null, "jobName": "job7", "dwhCreationDate": "2026-01-10 12:00:00"},
+  {"featureName": null, "jobName": "job8", "dwhCreationDate": "2026-01-10 13:00:00"}
+]

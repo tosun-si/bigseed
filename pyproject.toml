@@ -1,0 +1,56 @@
+[build-system]
+requires = ["uv_build>=0.8,<0.14"]
+build-backend = "uv_build"
+
+[project]
+name = "bigseed"
+version = "0.1.0.dev0"
+description = "Coherent BigQuery test datasets and Given / When / Then scenarios generated from the business rules of the code, seeded into an environment and run with BigTesty."
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [{ name = "Mazlum TOSUN", email = "mazlum.tosun@gmail.com" }]
+requires-python = ">=3.11"
+keywords = ["bigquery", "test-data", "testing", "data-engineering", "agents", "bigtesty"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Database",
+]
+dependencies = [
+    "bigtesty>=1.4",
+    "google-cloud-bigquery>=3.25",
+    "pydantic>=2.7",
+    "pyyaml>=6",
+    "typer>=0.12",
+]
+
+[project.optional-dependencies]
+# The agent generating the packs, with Gemini on Vertex AI or another model supported by ADK.
+agent = ["google-adk>=2.12"]
+
+[project.scripts]
+bigseed = "bigseed.cli:app"
+
+[dependency-groups]
+dev = [
+    "mypy>=1.11",
+    "pytest>=8.2",
+    "ruff>=0.6",
+    "types-pyyaml>=6.0.12.20260906",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
