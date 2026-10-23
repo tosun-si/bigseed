@@ -19,11 +19,29 @@ inputs/                          the files the pack was generated from
 The same data files seed an environment (UAT...) and run the tests on ephemeral datasets with BigTesty: the
 environment and the tests have the same data, and the environment can be reset to a pack version at any time.
 
+## Installation
+
+Python 3.11+ is required. The `agent` extra installs the agent of `generate`; `check` and `seed` work without it.
+
+```bash
+# as a standalone CLI
+uv tool install "bigseed[agent]"
+# or with pip, in a virtual environment
+pip install "bigseed[agent]"
+```
+
+BigSeed uses [Application Default Credentials](https://cloud.google.com/docs/authentication/application-default-credentials)
+for BigQuery and for Gemini on Vertex AI:
+
+```bash
+gcloud auth application-default login
+export GOOGLE_GENAI_USE_VERTEXAI=TRUE GOOGLE_CLOUD_PROJECT=my-project GOOGLE_CLOUD_LOCATION=global \
+  GOOGLE_CLOUD_QUOTA_PROJECT=my-project
+```
+
 ## Commands
 
 ```bash
-pip install "bigseed[agent]"
-
 # Generate a pack: the agent reads the inputs and the schemas of the tables (no row is read). --env uat declares
 # the environment of the tables in the pack, -v shows each call of the model with its tokens.
 bigseed generate inputs/rules.md inputs/build_daily_failures.sql \

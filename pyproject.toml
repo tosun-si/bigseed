@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "bigseed"
-version = "0.1.0.dev0"
+version = "0.1.0a1"
 description = "Coherent BigQuery test datasets and Given / When / Then scenarios generated from the business rules of the code, seeded into an environment and run with BigTesty."
 readme = "README.md"
 license = "Apache-2.0"
@@ -25,6 +25,12 @@ dependencies = [
     "pyyaml>=6",
     "typer>=0.12",
 ]
+
+[project.urls]
+Homepage = "https://github.com/tosun-si/bigseed"
+Repository = "https://github.com/tosun-si/bigseed"
+Issues = "https://github.com/tosun-si/bigseed/issues"
+Changelog = "https://github.com/tosun-si/bigseed/releases"
 
 [project.optional-dependencies]
 # The agent generating the packs, with Gemini on Vertex AI or another model supported by ADK.

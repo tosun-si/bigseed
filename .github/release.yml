@@ -1,0 +1,27 @@
+changelog:
+  categories:
+  - title: 💣 Breaking Changes
+    labels:
+    - breaking-change
+  - title: 🚀 Features
+    labels:
+    - feature
+  - title: 🐛 Bug Fixes
+    labels:
+    - bug
+  - title: 📝 Documentation
+    labels:
+    - doc
+  - title: 🧪 Tests
+    labels:
+    - test
+  - title: 🛠️ Build
+    labels:
+    - build
+  - title: ⬆️ Dependencies
+    labels:
+    - dependencies
+  # The PRs without a label of the categories above.
+  - title: 🔧 Other Changes
+    labels:
+    - '*'
