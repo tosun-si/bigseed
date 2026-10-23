@@ -89,6 +89,7 @@ def check_pack(pack: Pack) -> PackReport:
         warnings=(
             *_given_outside_data(pack, refs),
             *_undeclared_data_files(pack),
+            *_whole_table_thens(pack),
             *_scenarios_with_several_rules(pack),
             *_no_seedable_environment(pack),
         ),
@@ -150,12 +151,12 @@ def _expected_in_data(pack: Pack, refs: tuple[FileRef, ...]) -> tuple[str, ...]:
 
 
 def _output_tables_seeded(pack: Pack, refs: tuple[FileRef, ...]) -> tuple[str, ...]:
+    """A table of the data loaded by no given is not read by the code: an output table, written by the code."""
     given_tables = {ref.table for ref in refs if ref.kind == "given"}
-    then_tables = {ref.table for ref in refs if ref.kind == "then"}
     return tuple(
-        f"data of {table}, a table checked by the then and loaded by no given: only the input tables are seeded"
+        f"data of {table}, a table loaded by no given: only the input tables are seeded"
         for table in pack.manifest.data
-        if table in then_tables and table not in given_tables
+        if table not in given_tables
     )
 
 
@@ -165,6 +166,20 @@ def _given_outside_data(pack: Pack, refs: tuple[FileRef, ...]) -> tuple[str, ...
         "the tests and the seeded environments have different rows"
         for ref in refs
         if ref.kind == "given" and ref.path not in _data_files(pack)
+    )
+
+
+def _whole_table_thens(pack: Pack) -> tuple[str, ...]:
+    """With the data shared by the scenarios, a then comparing a whole table gets the rows of the other scenarios."""
+    scenarios = list(_raw_scenarios(pack))
+    if len(scenarios) < 2:
+        return ()
+    return tuple(
+        f"{scenario_id}: the then compares the whole table {then['table']}, with the rows of the other scenarios: "
+        "select the rows of the scenario with a query"
+        for scenario_id, _, scenario in scenarios
+        for then in scenario.get("then", [])
+        if isinstance(then, dict) and then.get("table") and ("expected" in then or "expected_file" in then)
     )
 
 

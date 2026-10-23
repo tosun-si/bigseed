@@ -11,7 +11,7 @@ scenarios:
     when:
       sql_file: ../../inputs/build_daily_failures.sql
     then:
-      - table: monitoring.daily_failures
+      - query: SELECT * FROM monitoring.daily_failures WHERE featureName = 'featurePSG'
         key_columns: [day, featureName]
         expected:
           - { day: "2026-01-10", featureName: featurePSG, failuresCount: 3 }

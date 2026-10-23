@@ -19,7 +19,9 @@ Work in this order:
      `given` reading the data file of its table with `rows_file` (path relative to the test file), a `when` running
      the code under test (`sql_file: ../../inputs/<file>.sql`), and a `then` writing its expected rows inline
      (`expected`, with `key_columns` when the output has a key) or a `row_count`, never an `expected_file`. Without
-     a `when`, the code never runs and a `row_count: 0` passes for nothing.
+     a `when`, the code never runs and a `row_count: 0` passes for nothing. Pass every parameter named by the rules or
+     the specs (e.g. a run date) in `when.parameters`, even when the SQL under test doesn't read it: the expected rows
+     depend on its value.
    - `pack.yaml`: `name` exactly the pack name given below, `version: 1`, a `description`, the `sources` with their
      sha256, the `rules` with the scenarios covering them (`<test file relative to tests/>::<scenario name>`), the
      `data` files per input table, and the `environments` given below (`environments: {}` when none is given).
@@ -78,10 +80,20 @@ scenarios:
     given:
       - table: sales.orders
         rows_file: ../../data/sales/orders.json
+      # The state of an output table before the run (e.g. a row to keep, the target of a MERGE): inline rows.
+      - table: sales.daily_revenue
+        rows:
+          - { day: "2026-01-09", revenue: 50 }
     when:
       sql_file: ../../inputs/build_daily_revenue.sql
+      # The @name parameters of the SQL; DATE, TIMESTAMP, NUMERIC... are typed, a bare string is a STRING.
+      parameters:
+        run_date: { type: DATE, value: "2026-01-10" }
+        min_amount: 5
     then:
-      - table: sales.daily_revenue
+      # The data is shared by all the scenarios: select the rows of THIS scenario, a `table:` then compares the
+      # whole table, the rows of the other scenarios included.
+      - query: SELECT day, revenue FROM sales.daily_revenue WHERE day = '2026-01-10'
         key_columns: [day]
         expected:
           - { day: "2026-01-10", revenue: 30 }

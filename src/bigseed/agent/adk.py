@@ -52,6 +52,7 @@ def adk_generator(model: str = DEFAULT_MODEL, on_progress: ProgressListener | No
 
 
 async def _generate(model: str, request: GenerationRequest, on_progress: ProgressListener) -> GenerationStats:
+    import httpx  # noqa: PLC0415
     from google.adk.runners import InMemoryRunner  # noqa: PLC0415, optional dependency
     from google.genai import errors, types  # noqa: PLC0415
 
@@ -76,6 +77,12 @@ async def _generate(model: str, request: GenerationRequest, on_progress: Progres
                 on_progress(_describe(step))
     except errors.APIError as e:
         raise GenerationError(_api_error_message(model, e)) from e
+    except httpx.TransportError as e:
+        # The timeouts and the refused connections are retried by google-genai, not a connection lost while reading.
+        raise GenerationError(
+            f"The connection to {model} was lost ({type(e).__name__}: {e}): the pack in {request.output_dir} may be "
+            "partial, generate it again in a new directory"
+        ) from e
 
     return GenerationStats(
         model_calls=len(steps),
