@@ -1,0 +1,85 @@
+scenarios:
+  - name: r1_only_paid_orders_count
+    description: "R1: only PAID orders are counted in revenue, REFUNDED and CANCELLED orders are ignored"
+    given:
+      - table: sales.customers
+        rows_file: ../../data/sales/customers.json
+      - table: sales.orders
+        rows_file: ../../data/sales/orders.json
+      - table: sales.customer_revenue
+        rows: []
+    when:
+      sql_file: ../../inputs/merge_customer_revenue.sql
+    then:
+      - query: SELECT customerId, country, totalRevenue, lastOrderDate FROM sales.customer_revenue WHERE customerId = 'c_r1'
+        key_columns: [customerId]
+        expected:
+          - { customerId: "c_r1", country: "FR", totalRevenue: 100, lastOrderDate: "2026-03-01" }
+
+  - name: r2_missing_customer_order_ignored
+    description: "R2: an order of a customer missing from sales.customers is ignored"
+    given:
+      - table: sales.customers
+        rows_file: ../../data/sales/customers.json
+      - table: sales.orders
+        rows_file: ../../data/sales/orders.json
+      - table: sales.customer_revenue
+        rows: []
+    when:
+      sql_file: ../../inputs/merge_customer_revenue.sql
+    then:
+      - query: SELECT * FROM sales.customer_revenue WHERE customerId = 'c_missing'
+        row_count: 0
+
+  - name: r3_existing_customer_updated
+    description: "R3: a customer already in customer_revenue has revenue and last order date replaced, country refreshed"
+    given:
+      - table: sales.customers
+        rows_file: ../../data/sales/customers.json
+      - table: sales.orders
+        rows_file: ../../data/sales/orders.json
+      - table: sales.customer_revenue
+        rows:
+          - { customerId: "c_r3", country: "FR", totalRevenue: 50, lastOrderDate: "2026-01-01" }
+    when:
+      sql_file: ../../inputs/merge_customer_revenue.sql
+    then:
+      - query: SELECT customerId, country, totalRevenue, lastOrderDate FROM sales.customer_revenue WHERE customerId = 'c_r3'
+        key_columns: [customerId]
+        expected:
+          - { customerId: "c_r3", country: "DE", totalRevenue: 200, lastOrderDate: "2026-03-15" }
+
+  - name: r4_new_customer_inserted
+    description: "R4: a customer with paid orders not yet in customer_revenue is inserted"
+    given:
+      - table: sales.customers
+        rows_file: ../../data/sales/customers.json
+      - table: sales.orders
+        rows_file: ../../data/sales/orders.json
+      - table: sales.customer_revenue
+        rows: []
+    when:
+      sql_file: ../../inputs/merge_customer_revenue.sql
+    then:
+      - query: SELECT customerId, country, totalRevenue, lastOrderDate FROM sales.customer_revenue WHERE customerId = 'c_r4'
+        key_columns: [customerId]
+        expected:
+          - { customerId: "c_r4", country: "IT", totalRevenue: 150, lastOrderDate: "2026-03-12" }
+
+  - name: r5_customer_without_paid_order_unchanged
+    description: "R5: a customer already in customer_revenue without any paid order keeps its row unchanged"
+    given:
+      - table: sales.customers
+        rows_file: ../../data/sales/customers.json
+      - table: sales.orders
+        rows_file: ../../data/sales/orders.json
+      - table: sales.customer_revenue
+        rows:
+          - { customerId: "c_r5", country: "ES", totalRevenue: 400, lastOrderDate: "2026-02-01" }
+    when:
+      sql_file: ../../inputs/merge_customer_revenue.sql
+    then:
+      - query: SELECT customerId, country, totalRevenue, lastOrderDate FROM sales.customer_revenue WHERE customerId = 'c_r5'
+        key_columns: [customerId]
+        expected:
+          - { customerId: "c_r5", country: "ES", totalRevenue: 400, lastOrderDate: "2026-02-01" }

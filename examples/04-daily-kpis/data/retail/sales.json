@@ -1,0 +1,10 @@
+[
+  { "saleId": "SAL_S1_1", "storeId": "S01", "amount": 100, "soldAt": "2026-03-15T10:00:00Z" },
+  { "saleId": "SAL_S2_1", "storeId": "S02", "amount": 120.5, "soldAt": "2026-03-15T10:00:00Z" },
+  { "saleId": "SAL_S2_2", "storeId": "S02", "amount": 80, "soldAt": "2026-03-15T14:30:00Z" },
+  { "saleId": "SAL_S2_OLD", "storeId": "S02", "amount": 200, "soldAt": "2026-03-14T09:00:00Z" },
+  { "saleId": "SAL_S3_1", "storeId": "S03", "amount": 50, "soldAt": "2026-03-15T10:00:00Z" },
+  { "saleId": "SAL_S3_2", "storeId": "S03", "amount": 25, "soldAt": "2026-03-15T15:00:00Z" },
+  { "saleId": "SAL_S4_OLD", "storeId": "S04", "amount": 40, "soldAt": "2026-03-14T12:00:00Z" },
+  { "saleId": "SAL_S5_1", "storeId": "S05", "amount": 60, "soldAt": "2026-03-15T11:00:00Z" }
+]

@@ -1,0 +1,108 @@
+scenarios:
+  - name: r1_replaces_run_date_rows_only
+    description: "R1: existing rows for run_date are replaced while rows for other days remain untouched"
+    given:
+      - table: retail.stores
+        rows_file: ../../data/retail/stores.json
+      - table: retail.sales
+        rows_file: ../../data/retail/sales.json
+      - table: retail.returns
+        rows_file: ../../data/retail/returns.json
+      - table: retail.visits
+        rows_file: ../../data/retail/visits.json
+      - table: retail.daily_store_kpis
+        rows:
+          - { day: "2026-03-14", storeId: "S01", revenue: 50, visits: 2, conversionRate: 0.5 }
+          - { day: "2026-03-15", storeId: "S01", revenue: 999, visits: 99, conversionRate: 0.999 }
+    when:
+      sql_file: ../../inputs/load_daily_store_kpis.sql
+      parameters:
+        run_date: { type: DATE, value: "2026-03-15" }
+    then:
+      - query: SELECT day, storeId, revenue, visits, conversionRate FROM retail.daily_store_kpis WHERE storeId = 'S01' ORDER BY day
+        key_columns: [day, storeId]
+        expected:
+          - { day: "2026-03-14", storeId: "S01", revenue: 50, visits: 2, conversionRate: 0.5 }
+          - { day: "2026-03-15", storeId: "S01", revenue: 100, visits: 1, conversionRate: 1.0 }
+
+  - name: r2_revenue_is_sales_minus_returns
+    description: "R2: revenue is the sum of sales amounts minus return amounts on run_date"
+    given:
+      - table: retail.stores
+        rows_file: ../../data/retail/stores.json
+      - table: retail.sales
+        rows_file: ../../data/retail/sales.json
+      - table: retail.returns
+        rows_file: ../../data/retail/returns.json
+      - table: retail.visits
+        rows_file: ../../data/retail/visits.json
+    when:
+      sql_file: ../../inputs/load_daily_store_kpis.sql
+      parameters:
+        run_date: { type: DATE, value: "2026-03-15" }
+    then:
+      - query: SELECT day, storeId, revenue FROM retail.daily_store_kpis WHERE storeId = 'S02' AND day = '2026-03-15'
+        key_columns: [day, storeId]
+        expected:
+          - { day: "2026-03-15", storeId: "S02", revenue: 170.25 }
+
+  - name: r3_distinct_visits_and_conversion_rate
+    description: "R3: visits counts distinct visitors and conversion rate is sales count divided by visits rounded to 4 decimals"
+    given:
+      - table: retail.stores
+        rows_file: ../../data/retail/stores.json
+      - table: retail.sales
+        rows_file: ../../data/retail/sales.json
+      - table: retail.returns
+        rows_file: ../../data/retail/returns.json
+      - table: retail.visits
+        rows_file: ../../data/retail/visits.json
+    when:
+      sql_file: ../../inputs/load_daily_store_kpis.sql
+      parameters:
+        run_date: { type: DATE, value: "2026-03-15" }
+    then:
+      - query: SELECT day, storeId, visits, conversionRate FROM retail.daily_store_kpis WHERE storeId = 'S03' AND day = '2026-03-15'
+        key_columns: [day, storeId]
+        expected:
+          - { day: "2026-03-15", storeId: "S03", visits: 3, conversionRate: 0.6667 }
+
+  - name: r4_active_store_without_activity_has_zeroes
+    description: "R4: an active store with no sales, returns, or visits on run_date has 0 everywhere"
+    given:
+      - table: retail.stores
+        rows_file: ../../data/retail/stores.json
+      - table: retail.sales
+        rows_file: ../../data/retail/sales.json
+      - table: retail.returns
+        rows_file: ../../data/retail/returns.json
+      - table: retail.visits
+        rows_file: ../../data/retail/visits.json
+    when:
+      sql_file: ../../inputs/load_daily_store_kpis.sql
+      parameters:
+        run_date: { type: DATE, value: "2026-03-15" }
+    then:
+      - query: SELECT day, storeId, revenue, visits, conversionRate FROM retail.daily_store_kpis WHERE storeId = 'S04' AND day = '2026-03-15'
+        key_columns: [day, storeId]
+        expected:
+          - { day: "2026-03-15", storeId: "S04", revenue: 0, visits: 0, conversionRate: 0.0 }
+
+  - name: r5_inactive_store_has_no_row
+    description: "R5: an inactive store produces no row in daily_store_kpis"
+    given:
+      - table: retail.stores
+        rows_file: ../../data/retail/stores.json
+      - table: retail.sales
+        rows_file: ../../data/retail/sales.json
+      - table: retail.returns
+        rows_file: ../../data/retail/returns.json
+      - table: retail.visits
+        rows_file: ../../data/retail/visits.json
+    when:
+      sql_file: ../../inputs/load_daily_store_kpis.sql
+      parameters:
+        run_date: { type: DATE, value: "2026-03-15" }
+    then:
+      - query: SELECT * FROM retail.daily_store_kpis WHERE storeId = 'S05'
+        row_count: 0

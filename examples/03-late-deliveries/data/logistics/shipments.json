@@ -1,0 +1,50 @@
+[
+  {
+    "orderId": "ORD-101",
+    "status": "DELIVERED",
+    "promisedDate": "2026-03-01",
+    "deliveredDate": "2026-03-05"
+  },
+  {
+    "orderId": "ORD-102",
+    "status": "DELIVERED",
+    "promisedDate": "2026-03-01",
+    "deliveredDate": "2026-03-03"
+  },
+  {
+    "orderId": "ORD-103",
+    "status": "DELIVERED",
+    "promisedDate": "2026-03-01",
+    "deliveredDate": "2026-03-01"
+  },
+  {
+    "orderId": "ORD-201",
+    "status": "IN_TRANSIT",
+    "promisedDate": "2026-03-05",
+    "deliveredDate": null
+  },
+  {
+    "orderId": "ORD-202",
+    "status": "IN_TRANSIT",
+    "promisedDate": "2026-03-09",
+    "deliveredDate": null
+  },
+  {
+    "orderId": "ORD-301",
+    "status": "CANCELLED",
+    "promisedDate": "2026-03-01",
+    "deliveredDate": "2026-03-06"
+  },
+  {
+    "orderId": "ORD-302",
+    "status": "CANCELLED",
+    "promisedDate": "2026-03-01",
+    "deliveredDate": null
+  },
+  {
+    "orderId": "ORD-401",
+    "status": "DELIVERED",
+    "promisedDate": "2026-03-02",
+    "deliveredDate": "2026-03-09"
+  }
+]

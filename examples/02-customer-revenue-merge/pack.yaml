@@ -1,0 +1,38 @@
+name: customer-revenue
+version: 1
+description: Customer revenue merge scenarios based on customer orders
+sources:
+  - { path: inputs/merge_customer_revenue.sql, sha256: b73bb73e61f7ed6fc24e26fd66b97e130910d01a3bc075ac8f83f59236ea7396 }
+  - { path: inputs/rules.md, sha256: c883f7798fe39f8f069ccb9a52cfcea9184814b017e7a60c9342fb9722971799 }
+rules:
+  - id: R1
+    description: Only orders with status PAID count in revenue (REFUNDED and CANCELLED do not)
+    source: inputs/rules.md#L5
+    scenarios: [sales/customer_revenue.bigtesty.yaml::r1_only_paid_orders_count]
+  - id: R2
+    description: An order of a customer missing from sales.customers is ignored
+    source: inputs/rules.md#L6
+    scenarios: [sales/customer_revenue.bigtesty.yaml::r2_missing_customer_order_ignored]
+  - id: R3
+    description: A customer already in customer_revenue gets total revenue and last order date replaced, country refreshed
+    source: inputs/rules.md#L7
+    scenarios: [sales/customer_revenue.bigtesty.yaml::r3_existing_customer_updated]
+  - id: R4
+    description: A customer with paid orders not yet in customer_revenue is inserted
+    source: inputs/rules.md#L9
+    scenarios: [sales/customer_revenue.bigtesty.yaml::r4_new_customer_inserted]
+  - id: R5
+    description: A customer already in customer_revenue without any paid order keeps its row unchanged
+    source: inputs/rules.md#L10
+    scenarios: [sales/customer_revenue.bigtesty.yaml::r5_customer_without_paid_order_unchanged]
+data:
+  sales.customers: data/sales/customers.json
+  sales.orders: data/sales/orders.json
+environments:
+  uat:
+    project: my-uat-project
+    datasets: { sales: sales_uat }
+  prod:
+    project: my-prod-project
+    datasets: { sales: sales }
+    seedable: false

@@ -1,0 +1,40 @@
+name: daily-store-kpis
+version: 1
+description: Daily store KPIs computing revenue, visits, and conversion rates
+sources:
+  - { path: inputs/load_daily_store_kpis.sql, sha256: 7f46b6253087bbe7b30d452df186522fb46af395a6d33b50dcb436bb9a2ab879 }
+  - { path: inputs/rules.md, sha256: 6555ebf15a00caddcf61b10f3dc97572615f1acb44167518f98f25de9974067a }
+rules:
+  - id: R1
+    description: The run replaces the rows of run_date only, leaving other days unchanged
+    source: inputs/rules.md#L5
+    scenarios: [retail/daily_store_kpis.bigtesty.yaml::r1_replaces_run_date_rows_only]
+  - id: R2
+    description: Revenue is the sum of sales amounts minus return amounts on run_date
+    source: inputs/rules.md#L7
+    scenarios: [retail/daily_store_kpis.bigtesty.yaml::r2_revenue_is_sales_minus_returns]
+  - id: R3
+    description: Visits is distinct visitors on run_date and conversionRate is sales divided by visits rounded to 4 decimals
+    source: inputs/rules.md#L9
+    scenarios: [retail/daily_store_kpis.bigtesty.yaml::r3_distinct_visits_and_conversion_rate]
+  - id: R4
+    description: An active store without sales, returns or visits on run_date has a row with 0 everywhere
+    source: inputs/rules.md#L11
+    scenarios: [retail/daily_store_kpis.bigtesty.yaml::r4_active_store_without_activity_has_zeroes]
+  - id: R5
+    description: A closed store (not active) has no row
+    source: inputs/rules.md#L12
+    scenarios: [retail/daily_store_kpis.bigtesty.yaml::r5_inactive_store_has_no_row]
+data:
+  retail.stores: data/retail/stores.json
+  retail.sales: data/retail/sales.json
+  retail.returns: data/retail/returns.json
+  retail.visits: data/retail/visits.json
+environments:
+  uat:
+    project: my-uat-project
+    datasets: { retail: retail_uat }
+  prod:
+    project: my-prod-project
+    datasets: { retail: retail }
+    seedable: false

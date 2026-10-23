@@ -1,0 +1,73 @@
+scenarios:
+  - name: r1_delivered_order_more_than_two_days_late
+    description: "R1: order ORD-101 delivered 4 days after promised date is late"
+    given:
+      - table: logistics.shipments
+        rows_file: ../../data/logistics/shipments.json
+    when:
+      sql_file: ../../inputs/build_late_deliveries.sql
+      parameters:
+        as_of_date: { type: DATE, value: "2026-03-10" }
+    then:
+      - query: SELECT orderId, promisedDate, delayDays FROM logistics.late_deliveries WHERE orderId = 'ORD-101'
+        key_columns: [orderId]
+        expected:
+          - { orderId: "ORD-101", promisedDate: "2026-03-01", delayDays: 4 }
+
+  - name: r1_delivered_order_exactly_two_days_is_on_time
+    description: "R1: order ORD-102 delivered exactly 2 days after promised date is on time (SQL uses >= 2 which incorrectly marks it late)"
+    given:
+      - table: logistics.shipments
+        rows_file: ../../data/logistics/shipments.json
+    when:
+      sql_file: ../../inputs/build_late_deliveries.sql
+      parameters:
+        as_of_date: { type: DATE, value: "2026-03-10" }
+    then:
+      - query: SELECT orderId FROM logistics.late_deliveries WHERE orderId = 'ORD-102'
+        row_count: 0
+
+  - name: r2_undelivered_order_more_than_two_days_past_promised_date
+    description: "R2: undelivered order ORD-201 is late when as of date is more than 2 days after promised date (SQL ignores undelivered orders)"
+    given:
+      - table: logistics.shipments
+        rows_file: ../../data/logistics/shipments.json
+    when:
+      sql_file: ../../inputs/build_late_deliveries.sql
+      parameters:
+        as_of_date: { type: DATE, value: "2026-03-10" }
+    then:
+      - query: SELECT orderId, promisedDate, delayDays FROM logistics.late_deliveries WHERE orderId = 'ORD-201'
+        key_columns: [orderId]
+        expected:
+          - { orderId: "ORD-201", promisedDate: "2026-03-05", delayDays: 5 }
+      - query: SELECT orderId FROM logistics.late_deliveries WHERE orderId = 'ORD-202'
+        row_count: 0
+
+  - name: r3_cancelled_order_is_never_late
+    description: "R3: cancelled orders ORD-301 and ORD-302 are never late even if overdue"
+    given:
+      - table: logistics.shipments
+        rows_file: ../../data/logistics/shipments.json
+    when:
+      sql_file: ../../inputs/build_late_deliveries.sql
+      parameters:
+        as_of_date: { type: DATE, value: "2026-03-10" }
+    then:
+      - query: SELECT orderId FROM logistics.late_deliveries WHERE orderId IN ('ORD-301', 'ORD-302')
+        row_count: 0
+
+  - name: r4_delay_days_equals_delivery_date_minus_promised_date
+    description: "R4: late order ORD-401 has delayDays equal to delivery date minus promised date (7 days)"
+    given:
+      - table: logistics.shipments
+        rows_file: ../../data/logistics/shipments.json
+    when:
+      sql_file: ../../inputs/build_late_deliveries.sql
+      parameters:
+        as_of_date: { type: DATE, value: "2026-03-10" }
+    then:
+      - query: SELECT orderId, promisedDate, delayDays FROM logistics.late_deliveries WHERE orderId = 'ORD-401'
+        key_columns: [orderId]
+        expected:
+          - { orderId: "ORD-401", promisedDate: "2026-03-02", delayDays: 7 }

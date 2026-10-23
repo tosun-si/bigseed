@@ -1,0 +1,22 @@
+[
+  {
+    "customerId": "c_r1",
+    "country": "FR",
+    "segment": "B2C"
+  },
+  {
+    "customerId": "c_r3",
+    "country": "DE",
+    "segment": "B2B"
+  },
+  {
+    "customerId": "c_r4",
+    "country": "IT",
+    "segment": "B2C"
+  },
+  {
+    "customerId": "c_r5",
+    "country": "ES",
+    "segment": "VIP"
+  }
+]

@@ -6,7 +6,8 @@ from typing import Any
 import pytest
 from google.cloud import bigquery
 
-EXAMPLE_PACK = Path(__file__).parents[1] / "examples" / "01-daily-failures"
+EXAMPLES = Path(__file__).parents[1] / "examples"
+EXAMPLE_PACK = EXAMPLES / "01-daily-failures"
 
 
 @pytest.fixture

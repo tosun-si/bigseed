@@ -1,4 +1,5 @@
 import pytest
+from conftest import EXAMPLES
 
 from bigseed.check import check_pack
 from bigseed.errors import PackError
@@ -82,8 +83,7 @@ def test_given_expected_rows_read_from_data_when_check_then_problem_and_not_ok(p
         (
             f"{scenario}: expected rows read from data/monitoring/daily_failures.json, the data files are seeded into "
             "the environments: write the expected rows in the then",
-            "data of monitoring.daily_failures, a table checked by the then and loaded by no given: only the input "
-            "tables are seeded",
+            "data of monitoring.daily_failures, a table loaded by no given: only the input tables are seeded",
         ),
     )
 
@@ -164,3 +164,33 @@ def test_given_invalid_pack_when_check_then_pack_error(pack_dir, old, new, error
     # WHEN / THEN
     with pytest.raises(PackError, match=error_message):
         check_pack(load_pack(pack_dir))
+
+
+def test_given_then_comparing_a_whole_shared_table_when_check_then_warning(pack_dir):
+    # GIVEN
+    test_file = pack_dir / "tests/monitoring/daily_failures.bigtesty.yaml"
+    test_file.write_text(
+        test_file.read_text().replace(
+            "- query: SELECT * FROM monitoring.daily_failures WHERE featureName = 'featurePSG'",
+            "- table: monitoring.daily_failures",
+        )
+    )
+
+    # WHEN
+    report = check_pack(load_pack(pack_dir))
+
+    # THEN
+    assert report.warnings == (
+        "monitoring/daily_failures.bigtesty.yaml::r1_one_row_per_day_and_feature_with_enough_failures: the then "
+        "compares the whole table monitoring.daily_failures, with the rows of the other scenarios: select the rows "
+        "of the scenario with a query",
+    )
+
+
+@pytest.mark.parametrize("example", sorted(p.name for p in EXAMPLES.iterdir() if (p / "pack.yaml").is_file()))
+def test_given_example_pack_when_check_then_ok_without_warning(example):
+    # WHEN
+    report = check_pack(load_pack(EXAMPLES / example))
+
+    # THEN
+    assert (report.ok, report.problems, report.warnings, report.stale_sources) == (True, (), (), ())

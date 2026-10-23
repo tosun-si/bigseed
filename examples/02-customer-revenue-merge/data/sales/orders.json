@@ -1,0 +1,58 @@
+[
+  {
+    "orderId": "ord_r1_paid",
+    "customerId": "c_r1",
+    "amount": 100,
+    "status": "PAID",
+    "orderDate": "2026-03-01"
+  },
+  {
+    "orderId": "ord_r1_refunded",
+    "customerId": "c_r1",
+    "amount": 50,
+    "status": "REFUNDED",
+    "orderDate": "2026-03-02"
+  },
+  {
+    "orderId": "ord_r1_cancelled",
+    "customerId": "c_r1",
+    "amount": 25,
+    "status": "CANCELLED",
+    "orderDate": "2026-03-03"
+  },
+  {
+    "orderId": "ord_r2_missing",
+    "customerId": "c_missing",
+    "amount": 75,
+    "status": "PAID",
+    "orderDate": "2026-03-05"
+  },
+  {
+    "orderId": "ord_r3_1",
+    "customerId": "c_r3",
+    "amount": 120,
+    "status": "PAID",
+    "orderDate": "2026-03-10"
+  },
+  {
+    "orderId": "ord_r3_2",
+    "customerId": "c_r3",
+    "amount": 80,
+    "status": "PAID",
+    "orderDate": "2026-03-15"
+  },
+  {
+    "orderId": "ord_r4_1",
+    "customerId": "c_r4",
+    "amount": 150,
+    "status": "PAID",
+    "orderDate": "2026-03-12"
+  },
+  {
+    "orderId": "ord_r5_1",
+    "customerId": "c_r5",
+    "amount": 300,
+    "status": "CANCELLED",
+    "orderDate": "2026-03-20"
+  }
+]

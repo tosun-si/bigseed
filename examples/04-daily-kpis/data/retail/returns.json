@@ -1,0 +1,4 @@
+[
+  { "returnId": "RET_S2_1", "storeId": "S02", "amount": 30.25, "returnedAt": "2026-03-15T11:00:00Z" },
+  { "returnId": "RET_S2_OLD", "storeId": "S02", "amount": 50, "returnedAt": "2026-03-14T11:00:00Z" }
+]

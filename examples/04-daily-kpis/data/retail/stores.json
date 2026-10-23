@@ -1,0 +1,7 @@
+[
+  { "storeId": "S01", "city": "Paris", "active": true },
+  { "storeId": "S02", "city": "Lyon", "active": true },
+  { "storeId": "S03", "city": "Marseille", "active": true },
+  { "storeId": "S04", "city": "Lille", "active": true },
+  { "storeId": "S05", "city": "Bordeaux", "active": false }
+]

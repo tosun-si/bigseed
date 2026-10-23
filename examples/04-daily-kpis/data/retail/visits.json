@@ -1,0 +1,11 @@
+[
+  { "visitorId": "V_S1_1", "storeId": "S01", "visitedAt": "2026-03-15T10:30:00Z" },
+  { "visitorId": "V_S2_1", "storeId": "S02", "visitedAt": "2026-03-15T12:00:00Z" },
+  { "visitorId": "V_S3_1", "storeId": "S03", "visitedAt": "2026-03-15T09:00:00Z" },
+  { "visitorId": "V_S3_1", "storeId": "S03", "visitedAt": "2026-03-15T14:00:00Z" },
+  { "visitorId": "V_S3_2", "storeId": "S03", "visitedAt": "2026-03-15T11:00:00Z" },
+  { "visitorId": "V_S3_3", "storeId": "S03", "visitedAt": "2026-03-15T16:00:00Z" },
+  { "visitorId": "V_S3_OLD", "storeId": "S03", "visitedAt": "2026-03-14T10:00:00Z" },
+  { "visitorId": "V_S4_OLD", "storeId": "S04", "visitedAt": "2026-03-14T12:00:00Z" },
+  { "visitorId": "V_S5_1", "storeId": "S05", "visitedAt": "2026-03-15T11:30:00Z" }
+]

@@ -1,0 +1,33 @@
+location: EU
+datasets:
+  - id: retail
+    tables:
+      - id: stores
+        schema:
+          - { name: storeId, type: STRING, mode: REQUIRED }
+          - { name: city, type: STRING, mode: REQUIRED }
+          - { name: active, type: BOOLEAN, mode: REQUIRED }
+      - id: sales
+        schema:
+          - { name: saleId, type: STRING, mode: REQUIRED }
+          - { name: storeId, type: STRING, mode: REQUIRED }
+          - { name: amount, type: NUMERIC, mode: REQUIRED }
+          - { name: soldAt, type: TIMESTAMP, mode: REQUIRED }
+      - id: returns
+        schema:
+          - { name: returnId, type: STRING, mode: REQUIRED }
+          - { name: storeId, type: STRING, mode: REQUIRED }
+          - { name: amount, type: NUMERIC, mode: REQUIRED }
+          - { name: returnedAt, type: TIMESTAMP, mode: REQUIRED }
+      - id: visits
+        schema:
+          - { name: visitorId, type: STRING, mode: REQUIRED }
+          - { name: storeId, type: STRING, mode: REQUIRED }
+          - { name: visitedAt, type: TIMESTAMP, mode: REQUIRED }
+      - id: daily_store_kpis
+        schema:
+          - { name: day, type: DATE, mode: REQUIRED }
+          - { name: storeId, type: STRING, mode: REQUIRED }
+          - { name: revenue, type: NUMERIC, mode: REQUIRED }
+          - { name: visits, type: INTEGER, mode: REQUIRED }
+          - { name: conversionRate, type: FLOAT, mode: REQUIRED }

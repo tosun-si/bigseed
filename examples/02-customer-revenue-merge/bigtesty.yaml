@@ -1,0 +1,22 @@
+location: EU
+datasets:
+  - id: sales
+    tables:
+      - id: customers
+        schema:
+          - { name: customerId, type: STRING, mode: REQUIRED }
+          - { name: country, type: STRING, mode: REQUIRED }
+          - { name: segment, type: STRING }
+      - id: orders
+        schema:
+          - { name: orderId, type: STRING, mode: REQUIRED }
+          - { name: customerId, type: STRING, mode: REQUIRED }
+          - { name: amount, type: NUMERIC, mode: REQUIRED }
+          - { name: status, type: STRING, mode: REQUIRED }
+          - { name: orderDate, type: DATE, mode: REQUIRED }
+      - id: customer_revenue
+        schema:
+          - { name: customerId, type: STRING, mode: REQUIRED }
+          - { name: country, type: STRING, mode: REQUIRED }
+          - { name: totalRevenue, type: NUMERIC, mode: REQUIRED }
+          - { name: lastOrderDate, type: DATE, mode: REQUIRED }

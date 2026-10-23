@@ -1,0 +1,38 @@
+name: late-deliveries
+version: 1
+description: Late deliveries detection and delay calculation scenarios
+sources:
+  - { path: inputs/build_late_deliveries.sql, sha256: d1a9e0b34bb4d1a2cfcfe5e91bd27a3a1d89c2952eeb50bfb93a4171d188134a }
+  - { path: inputs/spec.md, sha256: 6c41630eb27928d384ca8b48c45198bfcf0ab854b8fe591a0d3c775c8a07beb5 }
+rules:
+  - id: R1
+    description: A delivered order is late when delivered more than 2 days after its promised date; exactly 2 days is on time
+    source: inputs/spec.md#L5
+    scenarios:
+      - logistics/late_deliveries.bigtesty.yaml::r1_delivered_order_more_than_two_days_late
+      - logistics/late_deliveries.bigtesty.yaml::r1_delivered_order_exactly_two_days_is_on_time
+  - id: R2
+    description: An order not delivered yet is late when as_of_date is more than 2 days after its promised date
+    source: inputs/spec.md#L7
+    scenarios:
+      - logistics/late_deliveries.bigtesty.yaml::r2_undelivered_order_more_than_two_days_past_promised_date
+  - id: R3
+    description: A cancelled order is never late
+    source: inputs/spec.md#L8
+    scenarios:
+      - logistics/late_deliveries.bigtesty.yaml::r3_cancelled_order_is_never_late
+  - id: R4
+    description: Each late order has the number of days of delay from promised date
+    source: inputs/spec.md#L9
+    scenarios:
+      - logistics/late_deliveries.bigtesty.yaml::r4_delay_days_equals_delivery_date_minus_promised_date
+data:
+  logistics.shipments: data/logistics/shipments.json
+environments:
+  uat:
+    project: my-uat-project
+    datasets: { logistics: logistics_uat }
+  prod:
+    project: my-prod-project
+    datasets: { logistics: logistics }
+    seedable: false

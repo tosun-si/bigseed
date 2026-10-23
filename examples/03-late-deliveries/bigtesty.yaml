@@ -1,0 +1,15 @@
+location: EU
+datasets:
+  - id: logistics
+    tables:
+      - id: shipments
+        schema:
+          - { name: orderId, type: STRING, mode: REQUIRED }
+          - { name: status, type: STRING, mode: REQUIRED }
+          - { name: promisedDate, type: DATE, mode: REQUIRED }
+          - { name: deliveredDate, type: DATE, mode: NULLABLE }
+      - id: late_deliveries
+        schema:
+          - { name: orderId, type: STRING, mode: REQUIRED }
+          - { name: promisedDate, type: DATE, mode: REQUIRED }
+          - { name: delayDays, type: INTEGER, mode: REQUIRED }
