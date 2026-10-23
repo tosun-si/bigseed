@@ -8,3 +8,7 @@ class PackError(BigSeedError):
 
 class SeedError(BigSeedError):
     """A seed refused: unknown or protected environment, unmapped dataset..."""
+
+
+class GenerationError(BigSeedError):
+    """A generation stopped by the model: quota, unknown model, permission..."""

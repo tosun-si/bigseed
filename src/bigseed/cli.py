@@ -9,7 +9,7 @@ from google.auth.exceptions import DefaultCredentialsError, RefreshError
 from google.cloud import bigquery
 
 from bigseed import __version__
-from bigseed.check import check_pack
+from bigseed.check import PackReport, check_pack
 from bigseed.errors import BigSeedError
 from bigseed.pack import load_pack
 from bigseed.seed import seed, seed_plan
@@ -36,28 +36,65 @@ def generate_command(
     ],
     output: Annotated[Path, typer.Option("--output", "-o", help="Directory of the new pack.")],
     name: Annotated[str | None, typer.Option(help="Name of the pack, the output directory name by default.")] = None,
+    env: Annotated[
+        str | None,
+        typer.Option(
+            "--env",
+            help="Declare the environment of the --table sources in the pack (e.g. uat): their project, and their "
+            "dataset for each dataset of the pack.",
+        ),
+    ] = None,
     model: Annotated[str | None, typer.Option(help="Model of the agent.")] = None,
+    verbose: Annotated[
+        bool, typer.Option("--verbose", "-v", help="Show each call of the model and its tokens.")
+    ] = False,
 ) -> None:
     from bigseed.agent.adk import DEFAULT_MODEL, adk_generator  # noqa: PLC0415, optional dependency
-    from bigseed.agent.base import GenerationRequest, parse_table_option, read_schemas, read_sources  # noqa: PLC0415
+    from bigseed.agent.base import (  # noqa: PLC0415
+        GenerationRequest,
+        environment_from_tables,
+        location_of,
+        parse_table_option,
+        read_sources,
+        read_tables,
+        schemas_of,
+    )
 
     with _handle_errors():
         if output.exists() and any(output.iterdir()):
             raise BigSeedError(f"{output} is not empty: generate a new pack in a new directory")
 
+        tables = dict(map(parse_table_option, table))
+        environments = {env: environment_from_tables(tables)} if env else {}
+
         # The inputs are part of the pack: its sources and their hashes stay checkable after the generation.
         (output / "inputs").mkdir(parents=True, exist_ok=True)
         copies = [Path(shutil.copy(path, output / "inputs" / path.name)) for path in inputs]
 
+        source_tables = read_tables(bigquery.Client(), tables)
         request = GenerationRequest(
             sources=read_sources(copies),
-            schemas=read_schemas(bigquery.Client(), dict(map(parse_table_option, table))),
+            schemas=schemas_of(source_tables),
+            location=location_of(source_tables),
             output_dir=output,
             pack_name=name or output.name,
+            environments=environments,
         )
-        adk_generator(model or DEFAULT_MODEL)(request)
+        model = model or DEFAULT_MODEL
+        stats = adk_generator(model, typer.echo if verbose else None)(request)
 
-    typer.echo(f"Pack written in {output}: review it, then run `bigseed check -p {output}` and `bigtesty test`.")
+        typer.echo(
+            f"Generated with {model} in {stats.seconds:.0f}s: {stats.model_calls} model calls, {stats.tool_calls} tool "
+            f"calls, {stats.prompt_tokens} input tokens, {stats.output_tokens} output tokens, "
+            f"{stats.thinking_tokens} thinking tokens\n"
+        )
+        report = check_pack(load_pack(output))
+
+    _echo_report(report)
+    if not report.ok:
+        typer.secho(f"\nThe pack in {output} is not valid: fix it or generate it again.", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1)
+    typer.echo(f"\nPack written in {output}: review it, then run `bigtesty test --config {output}/bigtesty.yaml`.")
 
 
 @app.command("check", help="Check a pack: manifest, data files, BigTesty files, coverage of the rules.")
@@ -65,6 +102,12 @@ def check_command(pack: PackOption = Path(".")) -> None:
     with _handle_errors():
         report = check_pack(load_pack(pack))
 
+    _echo_report(report)
+    if not report.ok:
+        raise typer.Exit(code=1)
+
+
+def _echo_report(report: PackReport) -> None:
     for rule in report.coverage:
         mark = "covered  " if rule.covered else "UNCOVERED"
         typer.echo(f"{mark}  {rule.rule_id}  {rule.description}")
@@ -74,9 +117,10 @@ def check_command(pack: PackOption = Path(".")) -> None:
         typer.echo(f"no rule    {scenario}")
     for source in report.stale_sources:
         typer.secho(f"stale      {source} changed since the generation", fg=typer.colors.YELLOW)
-
-    if any(not rule.covered for rule in report.coverage):
-        raise typer.Exit(code=1)
+    for problem in report.problems:
+        typer.secho(f"problem    {problem}", fg=typer.colors.RED)
+    for warning in report.warnings:
+        typer.secho(f"warning    {warning}", fg=typer.colors.YELLOW)
 
 
 @app.command("seed", help="Replace the rows of the tables of an environment by the rows of the pack.")

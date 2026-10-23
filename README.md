@@ -24,9 +24,12 @@ environment and the tests have the same data, and the environment can be reset t
 ```bash
 pip install "bigseed[agent]"
 
-# Generate a pack: the agent reads the inputs and the schemas of the tables (no row is read)
+# Generate a pack: the agent reads the inputs and the schemas of the tables (no row is read). --env uat declares
+# the environment of the tables in the pack, -v shows each call of the model with its tokens.
 bigseed generate inputs/rules.md inputs/build_daily_failures.sql \
-  -t my-project.monitoring.job_failure -t my-project.monitoring.daily_failures -o packs/daily-failures
+  -t monitoring.job_failure=my-uat-project.monitoring_uat.job_failure \
+  -t monitoring.daily_failures=my-uat-project.monitoring_uat.daily_failures \
+  -o packs/daily-failures --env uat
 
 # Check it: manifest, data files, BigTesty files, rules covered by scenarios, inputs changed since the generation
 bigseed check -p packs/daily-failures
@@ -49,6 +52,12 @@ covered    R2  A feature with fewer than 2 failed jobs on a day is not reported 
 covered    R3  A failed job without feature name is ignored
              monitoring/daily_failures.bigtesty.yaml::r3_failure_without_feature_is_ignored
 ```
+
+`generate` ends with the same check and fails when the pack is not valid. A pack is not valid when a rule has no
+scenario, or when it breaks a principle below: expected rows read from `data/` (they would be seeded), data of an
+output table. The warnings are the usual defects of a generation, to review: a scenario covering several rules, a
+`given` reading another file than the data file of its table (the tests and the environment diverge), a file of
+`data/` in no table of the manifest, no seedable environment.
 
 See [`examples/01-daily-failures`](examples/01-daily-failures) for a complete pack.
 
