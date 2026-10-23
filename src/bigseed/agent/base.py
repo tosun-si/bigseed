@@ -3,9 +3,10 @@ The generation of a pack, behind an interface: the ADK agent is one implementati
 or a deterministic generator can be another one.
 """
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any
 
 from google.cloud import bigquery
 
@@ -31,19 +32,26 @@ class GenerationRequest:
     pack_name: str
 
 
-class PackGenerator(Protocol):
-    def generate(self, request: GenerationRequest) -> None:
-        """Writes a pack in request.output_dir, to be checked with `bigseed check` and reviewed before approval."""
+# Writes a pack in request.output_dir, to be checked with `bigseed check` and reviewed before approval.
+PackGenerator = Callable[[GenerationRequest], None]
 
 
 def read_sources(paths: list[Path]) -> tuple[SourceFile, ...]:
     return tuple(SourceFile(path, path.read_text(), sha256(path)) for path in paths)
 
 
-def read_schemas(client: bigquery.Client, tables: list[str]) -> dict[str, list[dict[str, Any]]]:
-    """`project.dataset.table` -> its schema, keyed by `dataset.table` as in the pack. The rows are never read."""
-    schemas = {}
-    for table_ref in tables:
-        table = client.get_table(table_ref)
-        schemas[f"{table.dataset_id}.{table.table_id}"] = [field.to_api_repr() for field in table.schema]
-    return schemas
+def parse_table_option(option: str) -> tuple[str, str]:
+    """
+    `monitoring.job_failure=my-project.monitoring_uat.job_failure`: the table of the pack and the table to read its
+    schema from. `my-project.monitoring.job_failure` alone: the pack table is `monitoring.job_failure`.
+    """
+    pack_table, _, source = option.rpartition("=")
+    return (pack_table or ".".join(source.split(".")[-2:]), source)
+
+
+def read_schemas(client: bigquery.Client, tables: dict[str, str]) -> dict[str, list[dict[str, Any]]]:
+    """Pack table (dataset.table) -> the schema of its source table. The rows are never read."""
+    return {
+        pack_table: [field.to_api_repr() for field in client.get_table(source).schema]
+        for pack_table, source in tables.items()
+    }

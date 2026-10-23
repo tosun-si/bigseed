@@ -26,14 +26,20 @@ PackOption = Annotated[Path, typer.Option("--pack", "-p", help="Directory of the
 def generate_command(
     inputs: Annotated[list[Path], typer.Argument(help="SQL, Python, Java or Markdown files holding the rules.")],
     table: Annotated[
-        list[str], typer.Option("--table", "-t", help="project.dataset.table read or written by the rules.")
+        list[str],
+        typer.Option(
+            "--table",
+            "-t",
+            help="Table read or written by the rules, project.dataset.table, or dataset.table=project.dataset.table to "
+            "read the schema of another dataset (e.g. monitoring.job_failure=my-project.monitoring_uat.job_failure).",
+        ),
     ],
     output: Annotated[Path, typer.Option("--output", "-o", help="Directory of the new pack.")],
     name: Annotated[str | None, typer.Option(help="Name of the pack, the output directory name by default.")] = None,
     model: Annotated[str | None, typer.Option(help="Model of the agent.")] = None,
 ) -> None:
-    from bigseed.agent.adk import DEFAULT_MODEL, AdkPackGenerator  # noqa: PLC0415, optional dependency
-    from bigseed.agent.base import GenerationRequest, read_schemas, read_sources  # noqa: PLC0415
+    from bigseed.agent.adk import DEFAULT_MODEL, adk_generator  # noqa: PLC0415, optional dependency
+    from bigseed.agent.base import GenerationRequest, parse_table_option, read_schemas, read_sources  # noqa: PLC0415
 
     with _handle_errors():
         if output.exists() and any(output.iterdir()):
@@ -45,11 +51,11 @@ def generate_command(
 
         request = GenerationRequest(
             sources=read_sources(copies),
-            schemas=read_schemas(bigquery.Client(), table),
+            schemas=read_schemas(bigquery.Client(), dict(map(parse_table_option, table))),
             output_dir=output,
             pack_name=name or output.name,
         )
-        AdkPackGenerator(model or DEFAULT_MODEL).generate(request)
+        adk_generator(model or DEFAULT_MODEL)(request)
 
     typer.echo(f"Pack written in {output}: review it, then run `bigseed check -p {output}` and `bigtesty test`.")
 

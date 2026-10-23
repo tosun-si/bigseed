@@ -7,33 +7,31 @@ import asyncio
 import json
 from pathlib import Path
 
-from bigseed.agent.base import GenerationRequest
+from bigseed.agent.base import GenerationRequest, PackGenerator
 from bigseed.agent.prompts import INSTRUCTION
 from bigseed.check import check_pack
 from bigseed.errors import BigSeedError
 from bigseed.pack import load_pack
 
-DEFAULT_MODEL = "gemini-2.5-pro"
+DEFAULT_MODEL = "gemini-3.1-pro-preview"
 APP_NAME = "bigseed"
 
 
-class AdkPackGenerator:
-    def __init__(self, model: str = DEFAULT_MODEL) -> None:
-        self.model = model
+def adk_generator(model: str = DEFAULT_MODEL) -> PackGenerator:
+    """The pack generator with an ADK agent on `model`."""
+    return lambda request: asyncio.run(_generate(model, request))
 
-    def generate(self, request: GenerationRequest) -> None:
-        asyncio.run(self._generate(request))
 
-    async def _generate(self, request: GenerationRequest) -> None:
-        from google.adk.runners import InMemoryRunner  # noqa: PLC0415, optional dependency
-        from google.genai import types  # noqa: PLC0415
+async def _generate(model: str, request: GenerationRequest) -> None:
+    from google.adk.runners import InMemoryRunner  # noqa: PLC0415, optional dependency
+    from google.genai import types  # noqa: PLC0415
 
-        runner = InMemoryRunner(agent=build_agent(self.model, request.output_dir), app_name=APP_NAME)
-        session = await runner.session_service.create_session(app_name=APP_NAME, user_id="bigseed")
-        message = types.Content(role="user", parts=[types.Part(text=user_message(request))])
+    runner = InMemoryRunner(agent=build_agent(model, request.output_dir), app_name=APP_NAME)
+    session = await runner.session_service.create_session(app_name=APP_NAME, user_id="bigseed")
+    message = types.Content(role="user", parts=[types.Part(text=user_message(request))])
 
-        async for _ in runner.run_async(user_id="bigseed", session_id=session.id, new_message=message):
-            pass
+    async for _ in runner.run_async(user_id="bigseed", session_id=session.id, new_message=message):
+        pass
 
 
 def build_agent(model: str, output_dir: Path):  # type: ignore[no-untyped-def]

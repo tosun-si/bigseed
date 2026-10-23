@@ -1,11 +1,13 @@
 from pathlib import Path
 
+import pytest
+
 from bigseed.agent.adk import build_agent, user_message
-from bigseed.agent.base import GenerationRequest, SourceFile
+from bigseed.agent.base import GenerationRequest, SourceFile, parse_table_option
 
 
 def _tools(output_dir: Path) -> dict:
-    return {tool.__name__: tool for tool in build_agent("gemini-2.5-pro", output_dir).tools}
+    return {tool.__name__: tool for tool in build_agent("gemini-3.1-pro-preview", output_dir).tools}
 
 
 def test_given_path_outside_of_the_pack_when_write_file_then_refused(tmp_path):
@@ -46,3 +48,20 @@ def test_given_request_when_user_message_then_schemas_and_inputs_with_their_hash
 
     # THEN
     assert all(text in message for text in ("Pack name: daily-failures", '"name": "jobName"', "rules.md (sha256 abc)"))
+
+
+@pytest.mark.parametrize(
+    ("option", "expected"),
+    [
+        # --- Case 1: the pack table is the dataset and table of the source ---
+        ("my-project.monitoring.job_failure", ("monitoring.job_failure", "my-project.monitoring.job_failure")),
+        # --- Case 2: the schema read from another dataset ---
+        (
+            "monitoring.job_failure=my-project.monitoring_uat.job_failure",
+            ("monitoring.job_failure", "my-project.monitoring_uat.job_failure"),
+        ),
+    ],
+)
+def test_given_table_option_when_parse_then_pack_table_and_source(option, expected):
+    # WHEN / THEN
+    assert parse_table_option(option) == expected
